@@ -1,9 +1,10 @@
-﻿try:
-    from PIL import Image, ImageEnhance
+﻿import subprocess
+try:
+    from PIL import Image
 except ImportError:
-    import subprocess
-    subprocess.check_call(["pip", "install", "pillow"])
-    from PIL import Image, ImageEnhance
+    subprocess.run(["pip", "install", "pillow"])
+    from PIL import Image
+
 
 
 import streamlit as st

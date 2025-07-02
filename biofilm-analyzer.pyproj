@@ -25,7 +25,11 @@
     <Compile Include="process.py" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include=".streamlit\config.toml" />
     <Content Include="requirements.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include=".streamlit\" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
   <!-- Uncomment the CoreCompile target to enable the Build command in
