@@ -1,13 +1,4 @@
-﻿import subprocess
-try:
-    from PIL import Image
-except ImportError:
-    subprocess.run(["pip", "install", "pillow"])
-    from PIL import Image
-
-
-
-import streamlit as st
+﻿import streamlit as st
 import subprocess
 import os
 import json
