@@ -1,4 +1,12 @@
-﻿import streamlit as st
+﻿try:
+    from PIL import Image, ImageEnhance
+except ImportError:
+    import subprocess
+    subprocess.check_call(["pip", "install", "pillow"])
+    from PIL import Image, ImageEnhance
+
+
+import streamlit as st
 import subprocess
 import os
 import json
