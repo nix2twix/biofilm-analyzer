@@ -134,8 +134,9 @@ with col_tools:
             elif os.path.exists("output_image.bmp"):
                 with open("output_image.bmp", "rb") as f:
                     st.session_state.processed_image = f.read()
-                st.success("✅ Processed successfully")
                 st.rerun()
+                st.success("✅ Processed successfully")
             else:
+                st.rerun()
                 st.error("❌ No result file was found")
 

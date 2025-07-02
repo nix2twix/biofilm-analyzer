@@ -5,3 +5,8 @@ enableCORS = false
 
 [theme]
 base = "dark"
+primaryColor = "#07fa81"
+backgroundColor = "#0E1117"  # стандартный тёмный фон (можно оставить)
+secondaryBackgroundColor = "#262730"  # для боковых панелей (по желанию)
+textColor = "#FAFAFA"
+font = "sans serif"
