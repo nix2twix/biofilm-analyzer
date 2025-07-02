@@ -28,9 +28,8 @@ with st.container():
     with col2:
         st.markdown("### ℹ️ Info")
         st.markdown("""
-            Этот веб-инструмент предназначен для загрузки и анализа СЭМ-изображений биоплёнок.
-            Поддерживаемый формат изображений: **.bmp**. Задайте параметры анализа слева,
-            загрузите изображение, и получите результат обработки.
+This tool is designed for processing SEM images of biofilms. The supported image format is .bmp, .png, and .jpg. 
+Set the analysis parameters on the left, upload the image, and get the processing result.
         """)
 
 st.markdown("---")
