@@ -1,25 +1,24 @@
 ﻿import streamlit as st
-from PIL import Image
-import io
-import os
 import subprocess
+import os
+import json
 
+# ============== Настройки страницы ==============
 st.set_page_config(page_title="Biofilm Analyzer", layout="wide")
 
-st.markdown("""
-    <style>
-    #MainMenu {visibility: hidden;}
-    footer {visibility: hidden;}
-    </style>
-""", unsafe_allow_html=True)
-
-# Сессия для хранения изображения
+# ============== Состояния сессии ==============
 if "image_bytes" not in st.session_state:
-    st.session_state["image_bytes"] = None
+    st.session_state.image_bytes = None
 if "processed_image" not in st.session_state:
-    st.session_state["processed_image"] = None
+    st.session_state.processed_image = None
+if "area_range" not in st.session_state:
+    st.session_state.area_range = (500, 3000)
+if "min_ecc" not in st.session_state:
+    st.session_state.min_ecc = 0.5
+if "trigger_processing" not in st.session_state:
+    st.session_state.trigger_processing = False
 
-# ==== БЛОК 1 ====
+# ============== Блок 1: Заголовок и описание ==============
 with st.container():
     col1, col2 = st.columns([1, 4])
 
@@ -27,63 +26,122 @@ with st.container():
         st.markdown("## 🧪 Biofilm Analyzer")
 
     with col2:
-        st.markdown("### ℹ️ О приложении")
+        st.markdown("### ℹ️ Info")
         st.markdown("""
             Этот веб-инструмент предназначен для загрузки и анализа СЭМ-изображений биоплёнок.
             Поддерживаемый формат изображений: **.bmp**. Задайте параметры анализа слева,
-            загрузите изображение, а затем получите обработанные результаты.
+            загрузите изображение, и получите результат обработки.
         """)
 
-# Разделитель
 st.markdown("---")
 
-# ==== БЛОК 2 ====
+# ============== Блок 2: Интерфейс ==============
 col_settings, col_workspace, col_tools = st.columns([1, 3, 1])
 
-# --- Левый блок: Настройки анализа ---
+# === Левая панель: Settings ===
 with col_settings:
-    st.markdown("### ⚙️ Настройки")
-    
-    area_range = st.slider(
-        "Диапазон площади (px)", min_value=0, max_value=6000,
-        value=(500, 3000)
-    )
-    min_ecc = st.slider("Минимальный эксцентриситет", 0.0, 1.0, 0.5)
+    st.markdown("### ⚙️ Settings")
 
-# --- Центральный блок: Работа с изображением ---
+    area_range = st.slider(
+        "Area range (px)",
+        min_value=0, max_value=6000,
+        value=st.session_state.area_range,
+        key="area_slider"
+    )
+
+    min_ecc = st.slider(
+        "Minimum eccentricity",
+        min_value=0.0, max_value=1.0,
+        value=st.session_state.min_ecc,
+        key="ecc_slider"
+    )
+
+    if area_range != st.session_state.area_range or min_ecc != st.session_state.min_ecc:
+        st.session_state.area_range = area_range
+        st.session_state.min_ecc = min_ecc
+        if st.session_state.image_bytes:
+            st.session_state.trigger_processing = True
+
+# === Центральная панель: Workflow ===
 with col_workspace:
     st.markdown("### 🔬 Workflow")
 
-    if st.session_state["processed_image"]:
-        st.image(st.session_state["processed_image"], caption="Processing results", use_container_width=True)
-    elif st.session_state["image_bytes"]:
-        st.image(st.session_state["image_bytes"], caption="Loaded image", use_container_width=True)
+    if st.session_state.processed_image:
+        st.image(st.session_state.processed_image, caption="Processing result", use_container_width=True)
+    elif st.session_state.image_bytes:
+        st.image(st.session_state.image_bytes, caption="Loaded SEM-image", use_container_width=True)
     else:
-        st.info("Изображение пока не загружено.")
+        st.info("SEM-image wasn't uploaded")
 
-# --- Правый блок: Инструменты ---
+# === Правая панель: Инструменты ===
+import streamlit as st
+import subprocess
+import os
+import json
+
+# --- Инициализация состояний ---
+for key, value in {
+    "image_bytes": None,
+    "processed_image": None,
+    "area_range": (500, 3000),
+    "min_ecc": 0.5,
+    "image_uploaded": False
+}.items():
+    if key not in st.session_state:
+        st.session_state[key] = value
+
+# --- Правая панель: Инструменты ---
 with col_tools:
     st.markdown("### 🛠 Tools")
 
-    uploaded_file = st.file_uploader("Load SEM-image (.bmp)", type=["bmp"], key="uploader", label_visibility="collapsed")
+    # --- Загрузка изображения ---
+    uploaded_file = st.file_uploader("Load image (.bmp)", type=["bmp"], key="uploader")
 
-    if uploaded_file:
-        st.session_state["image_bytes"] = uploaded_file.read()
-        #st.session_state["processed_image"] = None
-        #st.success("✅ Изображение загружено!")
+    # --- Загрузка нового изображения ---
+    if uploaded_file is not None and not st.session_state.image_uploaded:
+        st.session_state.image_bytes = uploaded_file.read()
+        st.session_state.processed_image = None
+        st.session_state.image_uploaded = True
+        st.rerun()
 
-    if st.button("🧪 Сегментация СЭМ-изображения") and st.session_state.get("image_bytes"):
-        with open("input_image.bmp", "wb") as f:
-            f.write(st.session_state["image_bytes"])
+    # --- Сброс изображения ---
+    elif uploaded_file is None and st.session_state.image_uploaded:
+        st.session_state.image_bytes = None
+        st.session_state.processed_image = None
+        st.session_state.image_uploaded = False
 
-        subprocess.run(["python", "process.py"])
+    # --- Инструменты ---
+    seg_button_clicked = st.button("🧪 Start segmentation", disabled=st.session_state.image_bytes is None)
+    st.button("🔍 Zoom (see later)")
+    st.button("💾 Save results (see later)")
 
-        if os.path.exists("output_image.bmp"):
-            with open("output_image.bmp", "rb") as f:
-                st.session_state["processed_image"] = f.read()
-        else:
-            st.error("Обработка не удалась. Файл не найден.")
+    if seg_button_clicked:
+        with st.spinner("⏳ Image processing..."):
+            # Сохраняем изображение
+            with open("input_image.bmp", "wb") as f:
+                f.write(st.session_state.image_bytes)
 
-    st.button("🔍 Включить приближение (later)")
-    st.button("💾 Выгрузить результаты (later)")
+            # Сохраняем параметры (на будущее)
+            params = {
+                "min_area": st.session_state.area_range[0],
+                "max_area": st.session_state.area_range[1],
+                "min_eccentricity": st.session_state.min_ecc
+            }
+            with open("params.json", "w") as f:
+                json.dump(params, f)
+
+            # Запускаем внешний скрипт
+            result = subprocess.run(["python", "process.py"], capture_output=True, text=True)
+
+            if result.returncode != 0:
+                st.error("❌ Error while processing image")
+                st.text(result.stdout)
+                st.text(result.stderr)
+            elif os.path.exists("output_image.bmp"):
+                with open("output_image.bmp", "rb") as f:
+                    st.session_state.processed_image = f.read()
+                st.success("✅ Processed successfully")
+                st.rerun()
+            else:
+                st.error("❌ No result file was found")
 
