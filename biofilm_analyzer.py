@@ -124,9 +124,8 @@ with col_tools:
             with open("params.json", "w") as f:
                 json.dump(params, f)
 
-            # Запускаем внешний скрипт
-            subprocess.run([sys.executable, "process.py"])
-
+            # Обработка изображения
+            result = subprocess.run([sys.executable, "process.py"])
 
             if result.returncode != 0:
                 st.error("❌ Error while processing image")
