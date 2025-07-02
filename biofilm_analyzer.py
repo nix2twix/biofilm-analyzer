@@ -2,7 +2,7 @@
 import subprocess
 import os
 import json
-
+import sys
 # ============== Настройки страницы ==============
 st.set_page_config(page_title="Biofilm Analyzer", layout="wide")
 
@@ -73,11 +73,6 @@ with col_workspace:
         st.info("SEM-image wasn't uploaded")
 
 # === Правая панель: Инструменты ===
-import streamlit as st
-import subprocess
-import os
-import json
-
 # --- Инициализация состояний ---
 for key, value in {
     "image_bytes": None,
@@ -130,7 +125,8 @@ with col_tools:
                 json.dump(params, f)
 
             # Запускаем внешний скрипт
-            result = subprocess.run(["python", "process.py"], capture_output=True, text=True)
+            subprocess.run([sys.executable, "process.py"])
+
 
             if result.returncode != 0:
                 st.error("❌ Error while processing image")
