@@ -33,6 +33,7 @@
   <ItemGroup>
     <Content Include=".streamlit\config.toml" />
     <Content Include="final_model_epoch_300.pth" />
+    <Content Include="packages.txt" />
     <Content Include="probsCount.npy" />
     <Content Include="requirements.txt" />
     <Content Include="test_config.json" />
