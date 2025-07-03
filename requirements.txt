@@ -10,3 +10,4 @@ cellpose
 scikit-image
 gradio_client
 glob2
+segmentation-models-pytorch
