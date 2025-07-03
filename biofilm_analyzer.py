@@ -3,8 +3,17 @@ import subprocess
 import os
 import json
 import sys
+import time
 # ============== Настройки страницы ==============
 st.set_page_config(page_title="Biofilm Analyzer", layout="wide")
+st.markdown("""
+    <style>
+    .block-container {
+        padding-top: 1rem;
+        padding-bottom: 1rem;
+    }
+    </style>
+""", unsafe_allow_html=True)
 
 # ============== Состояния сессии ==============
 if "image_bytes" not in st.session_state:
@@ -32,7 +41,7 @@ This tool is designed for processing SEM images of biofilms. The supported image
 Set the analysis parameters on the left, upload the image, and get the processing result.
         """)
 
-st.markdown("---")
+st.markdown('<hr style="margin: 0.5rem 0;">', unsafe_allow_html=True)
 
 # ============== Блок 2: Интерфейс ==============
 col_settings, col_workspace, col_tools = st.columns([1, 3, 1])
@@ -54,6 +63,11 @@ with col_settings:
         value=st.session_state.min_ecc,
         key="ecc_slider"
     )
+
+    if st.session_state.get("biofilm_area") is not None:
+        st.markdown(f"🧫 **Biofilm area:** {st.session_state.biofilm_area} px")
+        st.markdown(f"🔬 **Single bacterias count:** {st.session_state.bacteria_count}")
+
 
     if area_range != st.session_state.area_range or min_ecc != st.session_state.min_ecc:
         st.session_state.area_range = area_range
@@ -77,8 +91,8 @@ with col_workspace:
 for key, value in {
     "image_bytes": None,
     "processed_image": None,
-    "area_range": (500, 3000),
-    "min_ecc": 0.5,
+    "area_range": (500, 4500),
+    "min_ecc": 0.75,
     "image_uploaded": False
 }.items():
     if key not in st.session_state:
@@ -103,7 +117,7 @@ with col_tools:
         st.session_state.image_bytes = None
         st.session_state.processed_image = None
         st.session_state.image_uploaded = False
-
+        
     # --- Инструменты ---
     seg_button_clicked = st.button("🧪 Start segmentation", disabled=st.session_state.image_bytes is None)
     st.button("🔍 Zoom (see later)")
@@ -115,7 +129,7 @@ with col_tools:
             with open("input_image.bmp", "wb") as f:
                 f.write(st.session_state.image_bytes)
 
-            # Сохраняем параметры (на будущее)
+            # Сохраняем параметры 
             params = {
                 "min_area": st.session_state.area_range[0],
                 "max_area": st.session_state.area_range[1],
@@ -125,18 +139,26 @@ with col_tools:
                 json.dump(params, f)
 
             # Обработка изображения
-            result = subprocess.run([sys.executable, "process.py"])
+            result = subprocess.run(
+                [sys.executable, "process.py"],
+                capture_output=True,
+                text=True
+            )
 
             if result.returncode != 0:
                 st.error("❌ Error while processing image")
-                st.text(result.stdout)
                 st.text(result.stderr)
             elif os.path.exists("output_image.bmp"):
                 with open("output_image.bmp", "rb") as f:
                     st.session_state.processed_image = f.read()
+                if os.path.exists("result_stats.json"):
+                    with open("result_stats.json", "r") as f:
+                        stats = json.load(f)
+                    st.session_state["biofilm_area"] = stats["biofilm_area"]
+                    st.session_state["bacteria_count"] = stats["bacteria_count"]
+                else:
+                    st.session_state["biofilm_area"] = None
+                    st.session_state["bacteria_count"] = None
                 st.rerun()
-                st.success("✅ Processed successfully")
             else:
                 st.rerun()
-                st.error("❌ No result file was found")
-

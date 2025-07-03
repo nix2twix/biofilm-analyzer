@@ -11,6 +11,8 @@
     <OutputPath>.</OutputPath>
     <Name>biofilm-analyzer</Name>
     <RootNamespace>biofilm-analyzer</RootNamespace>
+    <SuppressConfigureTestFrameworkPrompt>true</SuppressConfigureTestFrameworkPrompt>
+    <SuppressEnvironmentCreationPrompt>True</SuppressEnvironmentCreationPrompt>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DebugSymbols>true</DebugSymbols>
@@ -22,11 +24,18 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="biofilm_analyzer.py" />
+    <Compile Include="dataset.py" />
+    <Compile Include="model.py" />
+    <Compile Include="preprocessing.py" />
     <Compile Include="process.py" />
+    <Compile Include="test.py" />
   </ItemGroup>
   <ItemGroup>
     <Content Include=".streamlit\config.toml" />
+    <Content Include="final_model_epoch_300.pth" />
+    <Content Include="probsCount.npy" />
     <Content Include="requirements.txt" />
+    <Content Include="test_config.json" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include=".streamlit\" />
