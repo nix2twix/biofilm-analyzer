@@ -6,7 +6,6 @@ from numpy import save
 import numpy as np
 from torch.utils.data import DataLoader
 from dataset import TestDataset, splitDatasetInDirs
-import torch.nn as nn
 from preprocessing import binarizeMaskDir, cropLineBelow, slidingWindowPatch
 from test import load_checkpoint, build_model, filter_masks_by_area_and_shape
 import re

@@ -20,7 +20,7 @@ import matplotlib.pyplot as plt
 import re
 from skimage import measure
 pattern = r'\.(\d+)_(\d+)\.png$'
-import cv2
+
 from sklearn.metrics import (
     accuracy_score,
     precision_score,

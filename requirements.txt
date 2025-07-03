@@ -1,3 +1,12 @@
 streamlit
 Pillow
 numpy
+torchvision
+torch-utils
+albumentations
+opencv-python
+matplotlib
+cellpose
+scikit-image
+gradio_client
+glob2
