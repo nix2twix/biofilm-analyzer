@@ -8,6 +8,7 @@ opencv-python
 matplotlib
 cellpose
 scikit-image
+scikit-learn
 gradio_client
 glob2
 segmentation-models-pytorch
