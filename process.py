@@ -34,10 +34,8 @@ def processOneSEMimage(imagePath = None, imgMode = 'L', output_path = OUTPUT_DIR
     shutil.rmtree(output_path, ignore_errors=True) 
     os.makedirs(output_path)
 
-    slidingWindowPatch(img, imgName, patch_size = (1024, 1024), 
+    slidingWindowPatch(img, imgName, patch_size = (1024, 1024), save_dir = output_path,
                        visualize = False)
-
-
 
     with open(configPath) as f:
         cfg = json.load(f)
