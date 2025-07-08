@@ -4,7 +4,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>5068ce30-f59a-4789-9719-c0c5a55135af</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>cellposeapi.py</StartupFile>
+    <StartupFile>process.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>

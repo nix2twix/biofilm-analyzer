@@ -4,7 +4,7 @@ outputDir = r"D:\Projects\VICTORIA"
 
 client = Client("mouseland/cellpose")
 result = client.predict(
-        filepath=[handle_file(os.path.join(outputDir, "15-SE-1k-T1.bmp"))],
+        filepath=[handle_file(os.path.join(outputDir, "9-SE-1k-T1.bmp"))],
         resize=1000,
         max_iter=250,
         flow_threshold=0.4,

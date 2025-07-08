@@ -1,7 +1,7 @@
 import torch
-from cellpose import io, models
-from cellpose.io import imread
-from cellpose import plot
+#from cellpose import io, models
+#from cellpose.io import imread
+#from cellpose import plot
 import matplotlib.pyplot as plt
 import torch.nn as nn
 from torch.utils.data import DataLoader
@@ -106,11 +106,18 @@ def filter_masks_by_area_and_shape(masks, probs, area_factor=3, min_circularity=
     filtered_probs = np.copy(probs)
     filtered_masks = np.copy(masks)
     for prop in props:
-        ecc = prop.eccentricity  
+        circularity = (4 * np.pi * prop.area) / (prop.perimeter ** 2) if prop.perimeter > 0 else 0
         
-        if (prop.area > area_threshold) or (prop.eccentricity < min_circularity) or (prop.area < (avg_area / 2)):
-            filtered_masks[filtered_masks == prop.label] = 0
-            filtered_probs[filtered_masks == prop.label] = 0.0
+        filter_condition = (
+                    (prop.area > area_threshold) or 
+                    (circularity < min_circularity) or 
+                    (prop.area < (avg_area / 2))
+        )
+        
+        if filter_condition:
+            cell_mask = (filtered_masks == prop.label)
+            filtered_masks[cell_mask] = 0
+            filtered_probs[cell_mask] = 0.0
 
     return filtered_masks, filtered_probs
 
