@@ -10,19 +10,43 @@ from preprocessing import binarizeMaskDir, cropLineBelow, slidingWindowPatch
 from test import load_checkpoint, build_model, filter_masks_by_area_and_shape
 import re
 from skimage import measure
-#from cellpose import io, models
-#from cellpose.io import imread
-#from cellpose import plot
+from cellpose import io, models
+from cellpose.io import imread
+from cellpose import plot
 import matplotlib.pyplot as plt
-from gradio_client import Client, file, handle_file
 import shutil 
+from pathlib import Path
+from skimage import measure
+from sklearn.metrics import (
+    accuracy_score,
+    precision_score,
+    recall_score,
+    f1_score,
+    confusion_matrix,
+    jaccard_score
+)
+from skimage.measure import label, regionprops
+
 pattern = r'\.(\d+)_(\d+)\.png$'
-import tifffile
+
+OUTPUT_DIR = str(Path(__file__).parent / "tmp")
+
 def sigmoid(x):
     return 1 / (1 + np.exp(-x))
 
-from pathlib import Path
-OUTPUT_DIR = str(Path(__file__).parent / "tmp")
+def filter_masks_by_area_and_shape(masks, probs, area_factor = 4, min_circularity=0.85, reference_area=1155, reference_circularity = 0.946):
+    props = measure.regionprops(masks)
+    areas = [prop.area for prop in props]
+    filtered_probs = np.copy(probs)
+    filtered_masks = np.copy(masks)
+    for prop in props:
+        ecc = prop.eccentricity 
+        
+        if (prop.area > (reference_area * area_factor)) or (prop.eccentricity < min_circularity) or (prop.area < (reference_area / area_factor)):
+            filtered_masks[filtered_masks == prop.label] = 0
+            filtered_probs[filtered_masks == prop.label] = 0.0
+
+    return filtered_masks, filtered_probs
 
 def processOneSEMimage(imagePath = None, imgMode = 'L', output_path = OUTPUT_DIR,
                       configPath = None, checkpointPath = None):
@@ -34,8 +58,8 @@ def processOneSEMimage(imagePath = None, imgMode = 'L', output_path = OUTPUT_DIR
     shutil.rmtree(output_path, ignore_errors=True) 
     os.makedirs(output_path)
 
-    #slidingWindowPatch(img, imgName, patch_size = (512, 512), save_dir = output_path,
-                      # visualize = False)
+    slidingWindowPatch(img, imgName, patch_size = (512, 512), save_dir = output_path,
+                       visualize = False)
 
     with open(configPath) as f:
         cfg = json.load(f)
@@ -95,35 +119,13 @@ def processOneSEMimage(imagePath = None, imgMode = 'L', output_path = OUTPUT_DIR
     cleaned_image = origImgNP.copy()
     cleaned_image[biofilmPredictions == 1] = 0 #black 
     cleaned_image = Image.fromarray(cleaned_image)
-    cleaned_image.save(os.path.join(output_path, 'blackBF.png'))
 
-    client = Client("mouseland/cellpose")
-    result = client.predict(
-      filepath=[handle_file(os.path.join(output_path, 'blackBF.png'))],
-      resize=1000,
-      max_iter=250,
-      flow_threshold=0.4,
-      cellprob_threshold=0,
-      api_name="/cellpose_segment"
-    )
+    model_cp = models.CellposeModel(gpu=False)
+    singlePredictions, flows, styles = model_cp.eval(cleaned_image, channels=[0, 0])
 
-    #model_cp = models.CellposeModel(gpu=False)
-    #singlePredictions, flows, styles = model_cp.eval(cleaned_image, channels=[0, 0])
-
-    flows_path = result[1] 
-    flows_image = Image.open(flows_path)
-    flows_array = np.array(flows_image) 
-    dP_x = (flows_array[:, :, 0].astype(np.float32) - 128) / 127
-    dP_y = (flows_array[:, :, 1].astype(np.float32) - 128) / 127
-    dP = np.stack([dP_x, dP_y], axis=-1)  
-
-    cellprob = (flows_array[:, :, 2].astype(np.float32) / 255 * 12) - 6
-
-    masks = tifffile.imread(result[2]['value'])
-    singlePredictions = (masks > 0).astype(np.uint8)
     singleProbs = 1 / (1 + np.exp(-singlePredictions))
 
-    #singlePredictions, singleProbs = filter_masks_by_area_and_shape(singlePredictions, singleProbs)
+    singlePredictions, singleProbs = filter_masks_by_area_and_shape(singlePredictions, singleProbs)
     
     # PREDS MATRIX
     singlePredictions = np.array(singlePredictions != 0, dtype=np.uint8)
@@ -180,7 +182,7 @@ if __name__ == "__main__":
     resultImage = processOneSEMimage(imagePath="input_image.bmp",
                            output_path = "./biofilm-analyzer/tmp/processingResults",
                            configPath = "./test_config.json",
-                           checkpointPath = "./final_model_epoch_300.pth"
+                           checkpointPath = "./final_model_epoch_350.pth"
     )
     #resultImage.show()
     resultImage.save("output_image.bmp")
