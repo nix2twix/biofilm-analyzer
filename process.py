@@ -28,25 +28,17 @@ from sklearn.metrics import (
 )
 from skimage.measure import label, regionprops
 import logging
-import warnings
-warnings.filterwarnings("ignore")
-
 pattern = r'\.(\d+)_(\d+)\.png$'
 
 OUTPUT_DIR = str(Path(__file__).parent / "tmp")
 
-sys.stdout.reconfigure(line_buffering=True)
-sys.stderr.reconfigure(line_buffering=True)
-
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s [%(levelname)s] %(message)s',
-    handlers=[
-        logging.StreamHandler(sys.stdout), 
-        logging.FileHandler('process_debug.log')
-    ]
+    format="%(asctime)s [%(levelname)s] %(message)s",
+    handlers=[logging.StreamHandler(sys.stderr)],
 )
-logger = logging.getLogger(__name__)
+
+
 def sigmoid(x):
     return 1 / (1 + np.exp(-x))
 
@@ -196,32 +188,18 @@ def processOneSEMimage(imagePath = None, imgMode = 'L', output_path = OUTPUT_DIR
     logging.info(f"PROCESSED SUCCESSFULLY!")
     return composite
 
-def main():
-    try:
-        logger.info("Starting processing...")
-        
-        if len(sys.argv) < 2:
-            logger.error("Missing parameters")
-            sys.exit(1)
-            
-        params = json.loads(sys.argv[1])
-        logger.info(f"Params: {params}")
-        
-        resultImage = processOneSEMimage(
-            imagePath="input_image.bmp",
-            output_path="src/biofilm-analyzer/tmp/processingResults",
-            checkpointPath="src/final_model_epoch_350.pth",
-            min_area=params.get("min_area"),
-            max_area=params.get("max_area"),
-            min_eccentricity=params.get("min_eccentricity")              
-        )
-        
-        resultImage.save("output_image.bmp")
-        logger.info("Processing completed successfully")
-        
-    except Exception as e:
-        logger.exception("Critical error in processing")
-        sys.exit(1)
-
 if __name__ == "__main__":
-    main()
+    if len(sys.argv) > 1:
+        params = json.loads(sys.argv[1])
+        min_area = params.get("min_area")
+        max_area = params.get("max_area")
+        min_eccentricity = params.get("min_eccentricity")
+
+        resultImage = processOneSEMimage(imagePath="input_image.bmp",
+                               output_path = "src/biofilm-analyzer/tmp/processingResults",
+                               checkpointPath="src/final_model_epoch_350.pth",
+                               min_area = min_area,
+                               max_area = max_area,
+                               min_eccentricity = min_eccentricity              
+        )
+        resultImage.save("output_image.bmp")

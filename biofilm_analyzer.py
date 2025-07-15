@@ -6,63 +6,11 @@ import sys
 import time
 import hashlib
 import logging
-from io import StringIO
-log_buffer = StringIO()
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s [%(levelname)s] %(message)s',
-    handlers=[logging.StreamHandler(log_buffer), logging.StreamHandler(sys.stdout)]
+    format="%(asctime)s [%(levelname)s] %(message)s",
+    handlers=[logging.StreamHandler(sys.stderr)],  
 )
-
-def run_processing():
-    with st.spinner("⏳ Processing image..."):
-        try:
-            with open("input_image.bmp", "wb") as f:
-                f.write(st.session_state.image_bytes)
-
-            params = {
-                "min_area": st.session_state.area_range[0],
-                "max_area": st.session_state.area_range[1],
-                "min_eccentricity": st.session_state.min_ecc
-            }
-            params_json = json.dumps(params)
-            process = subprocess.Popen(
-                [sys.executable, "src/process.py", params_json],
-                stdout=subprocess.PIPE,
-                stderr=subprocess.STDOUT,
-                text=True,
-                bufsize=1,
-                universal_newlines=True,
-                env={**os.environ, "PYTHONUNBUFFERED": "1"} 
-            )
-            
-            log_container = st.empty()
-            full_log = ""
-            
-            while True:
-                output = process.stdout.readline()
-                error = process.stderr.readline()
-                
-                if output == '' and error == '' and process.poll() is not None:
-                    break
-                    
-                if output:
-                    full_log += f"OUT: {output}"
-                if error:
-                    full_log += f"ERR: {error}"
-                
-                time.sleep(0.1)
-                with log_container:
-                    st.text(full_log[-2000:])
-
-            if process.returncode != 0:
-                st.error(f"❌ Process failed with code {process.returncode}")
-                st.text_area("Full error log", full_log, height=300)
-            else:
-                st.success("✅ Processing completed")
-                
-        except Exception as e:
-            st.error(f"⚠️ Critical error: {str(e)}")
 
 # ============== Настройки страницы ==============
 st.set_page_config(
@@ -215,10 +163,44 @@ with col_tools:
         
     # --- Инструменты ---
     seg_button_clicked = st.button("🧪 Start segmentation", disabled=st.session_state.image_bytes is None)
-    #st.button("🔍 Zoom (see later)")
-    #st.button("💾 Save results (see later)")
+    st.button("🔍 Zoom (see later)")
+    st.button("💾 Save results (see later)")
 
-    log_container = st.empty()
-    
     if seg_button_clicked:
-        run_processing()
+        with st.spinner("⏳ Image processing..."):
+            # Сохраняем изображение
+            with open("input_image.bmp", "wb") as f:
+                f.write(st.session_state.image_bytes)
+
+            # Сохраняем параметры 
+            params = {
+                "min_area": st.session_state.area_range[0],
+                "max_area": st.session_state.area_range[1],
+                "min_eccentricity": st.session_state.min_ecc
+            }
+            params_json = json.dumps(params)
+
+            # Обработка изображения
+            result = subprocess.run(
+                [sys.executable, "src/process.py", params_json],
+                capture_output=True,
+                text=True
+            )
+
+            if result.returncode != 0:
+                st.error("❌ Error while processing image")
+                st.text(result.stderr)
+            elif os.path.exists("output_image.bmp"):
+                with open("output_image.bmp", "rb") as f:
+                    st.session_state.processed_image = f.read()
+                if os.path.exists("result_stats.json"):
+                    with open("result_stats.json", "r") as f:
+                        stats = json.load(f)
+                    st.session_state["biofilm_area"] = stats["biofilm_area"]
+                    st.session_state["bacteria_count"] = stats["bacteria_count"]
+                else:
+                    st.session_state["biofilm_area"] = None
+                    st.session_state["bacteria_count"] = None
+                st.rerun()
+            else:
+                st.warning("Неизвестное состояние обработки!")
