@@ -35,6 +35,9 @@ pattern = r'\.(\d+)_(\d+)\.png$'
 
 OUTPUT_DIR = str(Path(__file__).parent / "tmp")
 
+sys.stdout.reconfigure(line_buffering=True)
+sys.stderr.reconfigure(line_buffering=True)
+
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s [%(levelname)s] %(message)s',

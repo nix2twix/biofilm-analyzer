@@ -29,10 +29,11 @@ def run_processing():
             process = subprocess.Popen(
                 [sys.executable, "src/process.py", params_json],
                 stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
                 text=True,
                 bufsize=1,
-                universal_newlines=True
+                universal_newlines=True,
+                env={**os.environ, "PYTHONUNBUFFERED": "1"} 
             )
             
             log_container = st.empty()
