@@ -11,7 +11,8 @@ logging.basicConfig(
     format="%(asctime)s [%(levelname)s] %(message)s",
     handlers=[logging.StreamHandler(sys.stderr)],  
 )
-
+logging.info("Текущий рабочий каталог:", os.getcwd())
+logging.info("Содержимое каталога:", os.listdir())
 # ============== Настройки страницы ==============
 st.set_page_config(
     page_title="Biofilm Analyzer",
@@ -80,10 +81,10 @@ with col_settings:
         st.session_state.update({
             "image_bytes": None,
             "processed_image": None,
-            "area_range": [50, 1155],  # Используем список вместо кортежа
+            "area_range": [50, 1155],  
             "min_ecc": 0.85,
             "image_uploaded": False,
-            "initialized": True  # Флаг инициализации
+            "initialized": True  
         })
 
     # Создаем слайдеры с текущими значениями из session_state
@@ -163,16 +164,14 @@ with col_tools:
         
     # --- Инструменты ---
     seg_button_clicked = st.button("🧪 Start segmentation", disabled=st.session_state.image_bytes is None)
-    st.button("🔍 Zoom (see later)")
-    st.button("💾 Save results (see later)")
+    #st.button("🔍 Zoom (see later)")
+    #st.button("💾 Save results (see later)")
 
     if seg_button_clicked:
         with st.spinner("⏳ Image processing..."):
-            # Сохраняем изображение
             with open("input_image.bmp", "wb") as f:
                 f.write(st.session_state.image_bytes)
 
-            # Сохраняем параметры 
             params = {
                 "min_area": st.session_state.area_range[0],
                 "max_area": st.session_state.area_range[1],
@@ -180,17 +179,19 @@ with col_tools:
             }
             params_json = json.dumps(params)
 
-            # Обработка изображения
+            st.write("⚙️ Start processing...")
             result = subprocess.run(
-                [sys.executable, "src/process.py", params_json],
+                [sys.executable, "process.py", params_json],
                 capture_output=True,
-                text=True
+                text=True,
+                timeout=36000
             )
 
-            if result.returncode != 0:
-                st.error("❌ Error while processing image")
-                st.text(result.stderr)
-            elif os.path.exists("output_image.bmp"):
+            st.write("📤 Processing finished. Return:", result.returncode)
+            st.write("📝 stdout:", result.stdout)
+            st.write("⚠️ stderr:", result.stderr)
+            
+            if os.path.exists("output_image.bmp"):
                 with open("output_image.bmp", "rb") as f:
                     st.session_state.processed_image = f.read()
                 if os.path.exists("result_stats.json"):
@@ -202,5 +203,3 @@ with col_tools:
                     st.session_state["biofilm_area"] = None
                     st.session_state["bacteria_count"] = None
                 st.rerun()
-            else:
-                st.warning("Неизвестное состояние обработки!")
