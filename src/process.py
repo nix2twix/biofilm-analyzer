@@ -1,4 +1,4 @@
-import json
+﻿import json
 import sys
 from PIL import Image
 import torch
@@ -33,10 +33,12 @@ pattern = r'\.(\d+)_(\d+)\.png$'
 OUTPUT_DIR = str(Path(__file__).parent / "tmp")
 
 logging.basicConfig(
+    filename="process_debug.log",
     level=logging.INFO,
-    format="%(asctime)s [%(levelname)s] %(message)s",
-    handlers=[logging.StreamHandler(sys.stderr)],
+    format="%(asctime)s [%(levelname)s] %(message)s"
 )
+
+logging.info("🔁 Начало process.py")
 
 
 def sigmoid(x):

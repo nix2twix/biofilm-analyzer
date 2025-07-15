@@ -13,6 +13,11 @@ logging.basicConfig(
 )
 logging.info("Текущий рабочий каталог:" + str(os.getcwd()))
 logging.info("Содержимое каталога: " + str(os.listdir()))
+
+if os.path.exists("process_debug.log"):
+    with open("process_debug.log") as f:
+       logging.info(str(f.read()))
+
 # ============== Настройки страницы ==============
 st.set_page_config(
     page_title="Biofilm Analyzer",
