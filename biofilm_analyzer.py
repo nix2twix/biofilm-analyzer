@@ -11,8 +11,8 @@ logging.basicConfig(
     format="%(asctime)s [%(levelname)s] %(message)s",
     handlers=[logging.StreamHandler(sys.stderr)],  
 )
-logging.info("Текущий рабочий каталог:", os.getcwd())
-logging.info("Содержимое каталога:", os.listdir())
+logging.info("Текущий рабочий каталог:" + str(os.getcwd()))
+logging.info("Содержимое каталога: " + str(os.listdir()))
 # ============== Настройки страницы ==============
 st.set_page_config(
     page_title="Biofilm Analyzer",
