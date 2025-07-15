@@ -1,10 +1,12 @@
 [server]
-headless = true
 port = 8501
 enableCORS = false
 
 [theme]
 base = "dark"
-primaryColor = "#07fa81"
+primaryColor = "#05e977"
 backgroundColor = "#0E1117"
 secondaryBackgroundColor = "#262730" 
+
+[runner]
+maxCacheSize = 1000

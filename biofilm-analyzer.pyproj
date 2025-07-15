@@ -4,7 +4,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>5068ce30-f59a-4789-9719-c0c5a55135af</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>biofilm_analyzer.py</StartupFile>
+    <StartupFile>src\biofilm_analyzer.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
@@ -23,23 +23,24 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="biofilm_analyzer.py" />
-    <Compile Include="dataset.py" />
-    <Compile Include="model.py" />
-    <Compile Include="preprocessing.py" />
-    <Compile Include="process.py" />
-    <Compile Include="test.py" />
+    <Compile Include="src\biofilm_analyzer.py" />
+    <Compile Include="src\dataset.py" />
+    <Compile Include="src\model.py" />
+    <Compile Include="src\preprocessing.py" />
+    <Compile Include="src\process.py" />
+    <Compile Include="src\test.py" />
   </ItemGroup>
   <ItemGroup>
     <Content Include=".streamlit\config.toml" />
     <Content Include="final_model_epoch_300.pth" />
     <Content Include="packages.txt" />
-    <Content Include="probsCount.npy" />
+    <Content Include="src\probsCount.npy" />
     <Content Include="requirements.txt" />
-    <Content Include="test_config.json" />
+    <Content Include="src\test_config.json" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include=".streamlit\" />
+    <Folder Include="src\" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
   <!-- Uncomment the CoreCompile target to enable the Build command in
